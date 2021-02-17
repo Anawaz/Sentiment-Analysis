@@ -29,7 +29,7 @@ bld/
 
 twitterwebservice/config.py
 Analysis/config.py
-Portal/appsettings.json.sample
+Portal/appsettings.json
 
 # Visual Studio 2015/2017 cache/options directory
 .vs/
