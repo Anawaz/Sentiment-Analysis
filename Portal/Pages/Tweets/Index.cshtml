@@ -1,0 +1,86 @@
+﻿@page
+@model Portal.Pages.Tweets.IndexModel
+@using Portal.Models
+
+@{
+    ViewData["Title"] = "Tweets";
+}
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">Tweets</h1>
+            </div><!-- /.col -->
+        </div><!-- /.row -->
+    </div><!-- /.container-fluid -->
+</div>
+
+<div class="container-fluid">
+    <hr />
+    @*Start GridView*@
+    @(Html.DevExtreme().DataGrid<TwitterRecord>()
+        .ID("gridContainer")
+        .ShowBorders(true)
+        .RowTemplate(@<text>
+            <% var rowClass = "employee dx-row " + ((rowIndex % 2) ? "dx-row-alt" : ""); %>
+            <tbody class="<%- rowClass %>">
+                <tr class="main-row">
+                    <td rowspan="2">
+                        <img src="<%- data.ProfileImageURL %>" alt=""/>
+                    </td>
+                    <td><%- data.Id %></td>
+                     <td><%- data.TopicName %></td>
+                    <td><%- data.UserName %></td>
+                    <td><%- data.TweetCreationTime %></td>
+                    <td><%- data.TweetHashTags %></td>
+                    <td><%- data.TweetLanguage %></td>
+                    <td rowspan="2">
+                        <img src="../img/icons/<%- data.Sentiment %>.png" alt="" style="height:48px; width:48px;"/>
+                    </td>
+                </tr>
+                <tr class="notes-row">
+                    <td colspan="6">
+                        <div><%- data.TweetText %></div>
+                    </td>
+                </tr>
+            </tbody>
+        </text>)
+        .DataSource(d => d.Mvc().Controller("DataSource").LoadAction("GetAllTweets").Key("Id"))
+
+        .Columns(columns => {
+            columns.AddFor(m => m.ProfileImageURL)
+                .Caption("Photo")
+                .Width(100)
+                .AllowFiltering(false)
+                .AllowSorting(false);
+            columns.AddFor(m => m.Id);
+            columns.AddFor(m => m.TopicName);
+            columns.AddFor(m => m.UserName);
+            columns.AddFor(m => m.TweetCreationTime);
+            columns.AddFor(m => m.TweetHashTags);
+            columns.AddFor(m => m.TweetLanguage);
+            columns.AddFor(m => m.Sentiment);
+            columns.AddFor(m => m.TweetText).Visible(false);
+        })
+        .Paging(p => p.PageSize(10))
+        .FilterRow(f => f.Visible(true))
+        .HeaderFilter(f => f.Visible(true))
+        .SearchPanel(searchPanel => searchPanel
+            .Visible(true)
+            .Width(300)
+            .Placeholder("Search...")
+        )
+        .GroupPanel(p => p.Visible(true))
+        .Grouping(g => g.AutoExpandAll(false))
+        .RemoteOperations(true)
+        .Summary(s => s
+            .TotalItems(totalItems => {
+                totalItems.AddFor(m => m.Sentiment).SummaryType(SummaryType.Count);
+            })
+            .GroupItems(groupItems => {
+                groupItems.Add().SummaryType(SummaryType.Count);
+            })
+        )
+    )
+    @*End GridView*@
+</div>

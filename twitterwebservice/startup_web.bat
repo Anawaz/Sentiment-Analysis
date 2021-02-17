@@ -1,0 +1,1 @@
+start /MIN python.exe manage.py runserver localhost:8000

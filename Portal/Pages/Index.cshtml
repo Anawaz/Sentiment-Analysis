@@ -1,0 +1,194 @@
+@page
+@addTagHelper*, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Portal.Models
+@model Portal.Pages.IndexModel
+
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">Dashboard</h1>
+            </div>
+        </div><!-- /.row -->
+    </div><!-- /.container-fluid -->
+</div>
+<!-- /.content-header -->
+<!-- Main content -->
+<section class="content">
+    <div class="container-fluid">
+        <!-- Small boxes (Stat box) -->
+        <div class="row">
+            <div class="col-lg-6 col-6">
+                <!-- small box -->
+                <div class="small-box bg-info">
+                    <div class="inner">
+                        <h3>@ViewData["TotalTopics"] </h3>
+
+                        <p>Topics</p>
+                    </div>
+                    <div class="icon">
+                        <i class="ion ion-social-buffer"></i>
+                    </div>
+                    <a href="/Topics" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+                </div>
+            </div>
+            <!-- ./col -->
+            <div class="col-lg-6 col-6">
+                <!-- small box -->
+                <div class="small-box bg-warning">
+                    <div class="inner">
+                        <h3>@ViewData["TotalRecords"]</h3>
+
+                        <p>Tweets</p>
+                    </div>
+                    <div class="icon">
+                        <i class="ion ion-social-twitter"></i>
+                    </div>
+                    <a href="/Tweets" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+                </div>
+            </div>
+            <!-- ./col -->
+        </div>
+        <!-- /.row -->
+        <!-- Info boxes -->
+        <div class="row">
+            <div class="col-12 col-sm-6 col-md-3">
+                <div class="info-box">
+                    <span class="info-box-icon bg-success  elevation-1"><i class="fas fa-smile"></i></span>
+
+                    <div class="info-box-content">
+                        <span class="info-box-text">Positive</span>
+                        <span class="info-box-number">@ViewData["PositiveTweets"]</span>
+                    </div>
+                    <!-- /.info-box-content -->
+                </div>
+                <!-- /.info-box -->
+            </div>
+            <!-- /.col -->
+            <div class="col-12 col-sm-6 col-md-3">
+                <div class="info-box mb-3">
+                    <span class="info-box-icon bg-danger elevation-1"><i class="fas fa-angry"></i></span>
+
+                    <div class="info-box-content">
+                        <span class="info-box-text">Negative</span>
+                        <span class="info-box-number">@ViewData["NegativeTweets"]</span>
+                    </div>
+                    <!-- /.info-box-content -->
+                </div>
+                <!-- /.info-box -->
+            </div>
+            <!-- /.col -->
+            <!-- fix for small devices only -->
+            <div class="clearfix hidden-md-up"></div>
+
+            <div class="col-12 col-sm-6 col-md-3">
+                <div class="info-box mb-3">
+                    <span class="info-box-icon bg-info elevation-1"><i class="fas fa-meh"></i></span>
+
+                    <div class="info-box-content">
+                        <span class="info-box-text">Netural</span>
+                        <span class="info-box-number">@ViewData["NeutralTweets"]</span>
+                    </div>
+                    <!-- /.info-box-content -->
+                </div>
+                <!-- /.info-box -->
+            </div>
+            <!-- /.col -->
+            <div class="col-12 col-sm-6 col-md-3">
+                <div class="info-box mb-3">
+                    <span class="info-box-icon bg-warning elevation-1"><i class="fas fa-meh-blank"></i></span>
+
+                    <div class="info-box-content">
+                        <span class="info-box-text">Pending</span>
+                        <span class="info-box-number">@ViewData["PendingTweets"]</span>
+                    </div>
+                    <!-- /.info-box-content -->
+                </div>
+                <!-- /.info-box -->
+            </div>
+            <!-- /.col -->
+        </div>
+        <!-- /.row -->
+
+        <div class="row">
+            <div class="col-md-12">
+                <!-- PIE CHART -->
+                <div class="card card-danger">
+                    <div class="card-header">
+                        <h3 class="card-title">Sentiments Pie Chart</h3>
+
+                        <div class="card-tools">
+                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <button type="button" class="btn btn-tool" data-card-widget="remove">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        @*Start Pie Chart*@
+                        @(Html.DevExtreme().PieChart()
+        .ID("pie")
+        .Size(s => s.Width(600))
+        .Palette(VizPalette.Material)
+        .CustomizePoint(@<text>
+        function(e) {
+            if(e.argument == 'neutral') {
+                return { color: "rgba(0, 57, 203, 0.8)", hoverStyle: { color: "rgba(41, 98, 255, 0.8)" } };
+            }else if(e.argument == 'negative') {
+                return { color: "rgba(142, 0, 0, 0.8)", hoverStyle: { color: "rgba(198, 40, 40, 0.8)" } };
+            } else if(e.argument == 'positive') {
+                return { color: "rgba(56, 112, 2, 0.8)", hoverStyle: { color: "rgba(104, 159, 56, 0.8)" } };
+            }else if(e.argument == 'not-supported') {
+                return { color: "rgba(55, 55, 55, 0.8)", hoverStyle: { color: "rgba(97, 97, 97, 0.8)" } };
+            }else if(e.argument == 'pending') {
+                return { color: "rgba(199, 148, 0, 0.8)", hoverStyle: { color: "rgba(255, 196, 0, 0.8)" } };
+            }
+        }
+        </text>)
+        .Series(s => s
+            .Add()
+            .ArgumentField("Sentiment")
+            .ValueField("Count")
+            .Label(l => l
+                .Visible(true)
+                .Connector(c => c
+                    .Visible(true)
+                    .Width(1)
+                )
+                .CustomizeText(@<text>
+                    function(arg) {
+                        return arg.valueText + " (" + arg.percentText + ")";
+                    }
+                    </text>)
+            )
+
+        )
+        .Export(e => e.Enabled(false))
+        .OnPointClick(@<text>
+            function (e) {
+                var point = e.target;
+                toggleVisibility(point);
+            }
+        </text>)
+        .OnLegendClick(@<text>
+            function (e) {
+                var arg = e.target;
+                toggleVisibility(this.getAllSeries()[0].getPointsByArg(arg)[0]);
+            }
+        </text>)
+        .DataSource(d => d.Mvc().Controller("DataSource").LoadAction("GetPieChartDataAllTweets"))
+
+    )
+                        @*End Pie Chart*@
+                    </div>
+                    <!-- /.card-body -->
+                </div>
+                <!-- /.card -->
+            </div>
+        </div>
+
+
+    </div>
+</section>

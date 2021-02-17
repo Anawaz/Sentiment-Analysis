@@ -1,0 +1,122 @@
+﻿@page
+@model Portal.Pages.Topics.GrabTweetModel
+
+@{
+    ViewData["Title"] = "Grab Tweets";
+}
+
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">Grab Tweets</h1>
+            </div><!-- /.col -->
+        </div><!-- /.row -->
+    </div><!-- /.container-fluid -->
+</div>
+<div>
+    <h4>Topic : @Html.DisplayFor(model => model.Topic.Name)</h4>
+    <hr />
+    <input type="hidden" id="topicId" name="topicId" value="@Html.DisplayFor(model => model.Topic.ID)"/>
+    <div class="row">
+        <div class="col-md-12">
+            <label asp-for="Topic.Keywords" class="control-label"></label>
+            <input class="form-control" type="text" id="topicKeywords" name="topicKeywords" readonly value="@Html.DisplayFor(model => model.Topic.Keywords)" />
+        </div>
+        <div class="col-md-6">
+            <label class="control-label">Start Date</label>
+            <input class="form-control" type="date" data-val="true" data-val-required="The DT field is required." id="dateEditStart" name="dateEditStart" />
+        </div>
+        <div class="col-md-6">
+            <label class="control-label">End Date</label>
+            <input class="form-control" type="date" data-val="true" data-val-required="The DT field is required." id="dateEditEnd" name="dateEditEnd" />
+        </div>
+        <div class="col-md-3">
+            <button onclick="grabTweets();" style="margin-top:20px;" class="form-control">Grab Tweets</button>
+        </div>
+    </div>
+    <div>
+        <a asp-page="./Index">Back to List</a>
+    </div>
+
+    <script>
+
+        var date_diff_indays = function (date1, date2) {
+            dt1 = new Date(date1);
+            dt2 = new Date(date2);
+            return Math.floor((Date.UTC(dt2.getFullYear(), dt2.getMonth(), dt2.getDate()) - Date.UTC(dt1.getFullYear(), dt1.getMonth(), dt1.getDate())) / (1000 * 60 * 60 * 24));
+        }
+
+        function grabTweets() {
+            var text = document.getElementById("topicKeywords").value; //topicKeywords.GetText();
+            var startDate = document.getElementById("dateEditStart").value;//dateEditStart.GetText();
+            var endDate = document.getElementById("dateEditEnd").value;//dateEditEnd.GetText();
+            var topicId = document.getElementById("topicId").value;
+
+            if (!startDate || !endDate) {
+                alert("Please Select both Dates")
+                return;
+            }
+
+            var currDate = new Date();
+
+            var days = date_diff_indays(startDate, currDate);
+            var pageName;
+            var url;
+
+            if (days <= 7) {
+                pageName = "get_hashtag_tweets";
+            } else {
+                alert("More than 7 days not Supported.")
+                return;
+                //pageName = "get_fullarchive_hashtag_tweets";
+            }
+
+            //dtS = new Date(startDate);
+            //dtE = new Date(endDate);
+
+            startDate = new Date(startDate).format('Y-m-d');
+            endDate = new Date(endDate).format('Y-m-d');
+
+            //console.log(startDate + " " + endDate);
+
+            //if (text == "") {
+            //    alert("Please edit Topic and Put some keywords.")
+            //    return;
+            //} else {
+            //    url = "http://127.0.0.1:8000/" + pageName + "/?q=" + text + "&since=%22" + startDate + "%22&until=%22" + endDate + "%22&topic="+topicId;
+            //}
+
+            url = "http://127.0.0.1:8000/" + pageName+"/";
+
+            //if (days > 7) {
+            //    url = url.replaceAll("%22", "");
+            //}
+
+            var parms = { //Fetch form data
+                'q': text,
+                'since': '"' + startDate + '"',
+                'until': '"' + endDate + '"',
+                'topic': topicId
+            };
+
+            console.log("Topic ID: " + topicId + " - Keywords: " + text + " - Since:" + startDate + " - Until:" + endDate)
+
+            $.preloader.start();
+            $.ajax({
+                type: 'POST',
+                url: url,
+                data: parms,
+                success: function (data) {
+                    console.log(data);
+                    alert("Successfully Done. Total Tweets Grabbed: " + data);
+                    $.preloader.stop();
+                },
+                error: function (err) {
+                    console.log(err);
+                    alert('error occured in parsing tweet');
+                    $.preloader.stop();
+                }
+            });
+        };
+    </script>

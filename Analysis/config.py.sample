@@ -1,0 +1,9 @@
+class settings_cfg_cls:
+    mssql_db_source="127.0.0.1";
+    TEST_DATABASE_TABLES = ['tb_users', 'tb_groups']
+    osint_scraper_db_conn_str="Driver={SQL Server};"+ "Server="+mssql_db_source+";"+"Database=SentimentAnalysis;"+"uid=sa;pwd=password;"+"MARS_Connection=yes;"+"autocommit=False;"
+class settings_twitter_cfg_cls:
+    consumer_key = 'consumer_key'
+    consumer_secret = 'consumer_secret'
+    access_token = 'access_token'
+    access_token_secret = 'access_token_secret'

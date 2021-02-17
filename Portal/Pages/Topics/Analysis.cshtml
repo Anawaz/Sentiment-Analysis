@@ -1,0 +1,322 @@
+﻿@page
+@model Portal.Pages.Topics.AnalysisModel
+@using Portal.Models
+@*@using Sparc.TagCloud*@
+
+@{
+    ViewData["Title"] = "Analysis";
+}
+<link href="~/plugins/jqcloud/jqcloud.css" rel="stylesheet" />
+<script src="~/plugins/jqcloud/jqcloud-1.0.4.js"></script>
+
+<style>
+    .options {
+        padding: 20px;
+        background-color: rgba(191, 191, 191, 0.15);
+        margin-top: 20px;
+    }
+
+    .option {
+        margin-top: 10px;
+    }
+
+    .caption {
+        font-size: 18px;
+        font-weight: 500;
+    }
+
+    .option > span {
+        margin-right: 10px;
+    }
+
+    .option > .dx-widget {
+        display: inline-block;
+        vertical-align: middle;
+    }
+
+/*    #pie {
+        height: 500px;
+    }
+
+    #pie * {
+        margin: 0 auto;
+    }
+
+    #line {
+        height: 500px;
+    }
+
+    #line * {
+        margin: 0 auto;
+    }*/
+</style>
+
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">Analysis</h1>
+            </div><!-- /.col -->
+        </div><!-- /.row -->
+    </div><!-- /.container-fluid -->
+</div>
+<div>
+    <h4>Topic : @Html.DisplayFor(model => model.Topic.Name)</h4>
+    <hr />
+    <div class="row">
+        <div class="col-md-6">
+            <!-- PIE CHART -->
+            <div class="card card-danger">
+                <div class="card-header">
+                    <h3 class="card-title">Sentiments Pie Chart</h3>
+
+                    <div class="card-tools">
+                        <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                            <i class="fas fa-minus"></i>
+                        </button>
+                        <button type="button" class="btn btn-tool" data-card-widget="remove">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    @*Start Pie Chart*@
+                    @(Html.DevExtreme().PieChart()
+                        .ID("pie")
+                        .Size(s => s.Width(600))
+                        .Palette(VizPalette.Material)
+                        .Legend(l => l
+                            .Orientation(Orientation.Horizontal)
+                            .ItemTextPosition(Position.Right)
+                            .HorizontalAlignment(HorizontalAlignment.Center)
+                            .VerticalAlignment(VerticalEdge.Bottom)
+                            .ColumnCount(5)
+                        )
+                        .CustomizePoint(@<text>
+                        function(e) {
+                            if(e.argument == 'neutral') {
+                                return { color: "rgba(0, 57, 203, 0.8)", hoverStyle: { color: "rgba(41, 98, 255, 0.8)" } };
+                            }else if(e.argument == 'negative') {
+                                return { color: "rgba(142, 0, 0, 0.8)", hoverStyle: { color: "rgba(198, 40, 40, 0.8)" } };
+                            } else if(e.argument == 'positive') {
+                                return { color: "rgba(56, 112, 2, 0.8)", hoverStyle: { color: "rgba(104, 159, 56, 0.8)" } };
+                            }else if(e.argument == 'not-supported') {
+                                return { color: "rgba(55, 55, 55, 0.8)", hoverStyle: { color: "rgba(97, 97, 97, 0.8)" } };
+                            }else if(e.argument == 'pending') {
+                                return { color: "rgba(199, 148, 0, 0.8)", hoverStyle: { color: "rgba(255, 196, 0, 0.8)" } };
+                            }
+                        }
+                        </text>)
+                        .Series(s => s
+                            .Add()
+                            .ArgumentField("Sentiment")
+                            .ValueField("Count")
+                            .Label(l => l
+                                .Visible(true)
+                                .Connector(c => c
+                                    .Visible(true)
+                                    .Width(1)
+                                )
+                                .CustomizeText(@<text>
+                                    function(arg) {
+                                        return arg.valueText + " (" + arg.percentText + ")";
+                                    }
+                                    </text>)
+                            )
+
+                        )
+                        .Export(e => e.Enabled(true))
+                        .OnPointClick(@<text>
+                            function (e) {
+                                var point = e.target;
+                                toggleVisibility(point);
+                            }
+                        </text>)
+                        .OnLegendClick(@<text>
+                            function (e) {
+                                var arg = e.target;
+                                toggleVisibility(this.getAllSeries()[0].getPointsByArg(arg)[0]);
+                            }
+                        </text>)
+                        .DataSource(d => d.Mvc().Controller("DataSource").LoadAction("GetPieChartData").LoadParams(new { tid = ViewData["id"] }))
+
+                    )
+                    @*End Pie Chart*@
+                </div>
+                <!-- /.card-body -->
+            </div>
+            <!-- /.card -->
+        </div>
+        <!-- /.col (LEFT) -->
+        <div class="col-md-6">
+            <!-- LINE CHART -->
+            <div class="card card-info">
+                <div class="card-header">
+                    <h3 class="card-title">Sentiments over time</h3>
+
+                    <div class="card-tools">
+                        <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                            <i class="fas fa-minus"></i>
+                        </button>
+                        <button type="button" class="btn btn-tool" data-card-widget="remove">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="chart">
+                        <div id="chart-demo">
+                            @(Html.DevExtreme().Chart()
+                                .ID("line-chart")
+                                .Palette(VizPalette.Violet)
+                                .CommonSeriesSettings(s => s
+                                    .ArgumentField("Name")
+                                    .Type(SeriesType.Line)
+                                )
+
+                                .Margin(m => m.Bottom(20))
+                                .ArgumentAxis(a => a
+                                    .ValueMarginsEnabled(false)
+                                    .DiscreteAxisDivisionMode(DiscreteAxisDivisionMode.CrossLabels)
+                                    .Grid(g => g.Visible(true))
+                                )
+                                .Series(s => {
+                                    s.Add().ValueField("NegativeRecords").Name("Negative").Color("rgba(142, 0, 0, 0.8)");
+                                    s.Add().ValueField("PositiveRecords").Name("Positive").Color("rgba(56, 112, 2, 0.8)");
+                                    s.Add().ValueField("NeutralRecords").Name("Neutral").Color("rgba(0, 57, 203, 0.8)");
+                                })
+                                .Legend(l => l
+                                    .VerticalAlignment(VerticalEdge.Bottom)
+                                    .HorizontalAlignment(HorizontalAlignment.Center)
+                                    .ItemTextPosition(Position.Bottom)
+                                )
+                                .Export(e => e.Enabled(true))
+                                .Tooltip(t => t.Enabled(true))
+                                .DataSource(d => d.Mvc().Controller("DataSource").LoadAction("GetLineChartData").LoadParams(new { tid = ViewData["id"] }))
+                            )
+                        </div>
+                    </div>
+                </div>
+                <!-- /.card-body -->
+            </div>
+            <!-- /.card -->
+        </div>
+    </div>
+    <!--<div class="row">-->
+        <!-- Area chart -->
+        <!--<div class="card card-primary card-outline">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="far fa-chart-bar"></i>
+                    Tag Clouds
+                </h3>
+
+                <div class="card-tools">
+                    <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                    <button type="button" class="btn btn-tool" data-card-widget="remove">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div id="my_favorite_latin_words" style="width: 100%; height: 350px; border: 1px solid #ccc; background-color:#fff; font-family:'Roboto';"></div>
+            </div>-->
+            <!-- /.card-body-->
+        <!--</div>-->
+        <!-- /.card -->
+    <!--</div>-->
+    @*Start GridView*@
+    @(Html.DevExtreme().DataGrid<TwitterRecord>()
+        .ID("gridContainer")
+        .ShowBorders(true)
+        .RowTemplate(@<text>
+            <% var rowClass = "employee dx-row " + ((rowIndex % 2) ? "dx-row-alt" : ""); %>
+            <tbody class="<%- rowClass %>">
+                <tr class="main-row">
+                    <td rowspan="2">
+                        <img src="<%- data.ProfileImageURL %>" alt=""/>
+                    </td>
+                    <td><%- data.Id %></td>
+                    <td><%- data.UserName %></td>
+                    <td><%- data.TweetCreationTime %></td>
+                    <td><%- data.TweetHashTags %></td>
+                    <td><%- data.TweetLanguage %></td>
+                    <td rowspan="2">
+                        <img src="../img/icons/<%- data.Sentiment %>.png" alt="" style="height:48px; width:48px;"/>
+                    </td>
+                </tr>
+                <tr class="notes-row">
+                    <td colspan="5">
+                        <div><%- data.TweetText %></div>
+                    </td>
+                </tr>
+            </tbody>
+        </text>)
+        .DataSource(d => d.Mvc().Controller("DataSource").LoadAction("GetTweets").LoadParams(new { id = ViewData["id"] }).Key("Id"))
+
+        .Columns(columns => {
+            columns.AddFor(m => m.ProfileImageURL)
+                .Caption("Photo")
+                .Width(100)
+                .AllowFiltering(false)
+                .AllowSorting(false);
+            columns.AddFor(m => m.Id);
+            columns.AddFor(m => m.UserName);
+            columns.AddFor(m => m.TweetCreationTime);
+            columns.AddFor(m => m.TweetHashTags);
+            columns.AddFor(m => m.TweetLanguage);
+            columns.AddFor(m => m.Sentiment);
+            columns.AddFor(m => m.TweetText).Visible(false);
+        })
+        .Paging(p => p.PageSize(10))
+        .FilterRow(f => f.Visible(true))
+        .HeaderFilter(f => f.Visible(true))
+        .SearchPanel(searchPanel => searchPanel
+            .Visible(true)
+            .Width(300)
+            .Placeholder("Search...")
+        )
+        .GroupPanel(p => p.Visible(true))
+        .Grouping(g => g.AutoExpandAll(false))
+        .RemoteOperations(true)
+        .Summary(s => s
+            .TotalItems(totalItems => {
+                totalItems.AddFor(m => m.Sentiment).SummaryType(SummaryType.Count);
+            })
+            .GroupItems(groupItems => {
+                groupItems.Add().SummaryType(SummaryType.Count);
+            })
+        )
+    )
+    @*End GridView*@
+</div>
+
+<div>
+    <a asp-page="./Index">Back to List</a>
+</div>
+
+<script>
+    function toggleVisibility(item) {
+        if (item.isVisible()) {
+            item.hide();
+        } else {
+            item.show();
+        }
+    }
+</script>
+@*<script type="text/javascript">
+    var word_list = [];
+    var tagJson = JSON.parse(@ViewData["Tags"]);
+    console.log(tagJson);
+    foreach (var tag in @ViewData["Tags"])
+    {
+        //var t = {text: tag.Text,weight: tag.Category};
+        word_list.push({ text: tag.Text, weight: tag.Category });
+    }
+    console.log(word_list);
+    $(function () {
+        $("#my_favorite_latin_words").jQCloud(word_list);
+    });
+</script>*@

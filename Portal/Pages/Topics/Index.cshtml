@@ -1,0 +1,121 @@
+﻿@page
+@model Portal.Pages.Topics.IndexModel
+@using Portal.Models
+
+@{
+    ViewData["Title"] = "Topics";
+}
+
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">Topics</h1>
+            </div><!-- /.col -->
+        </div><!-- /.row -->
+    </div><!-- /.container-fluid -->
+</div>
+<p>
+    <a asp-page="Create">Create New Topic</a>
+</p>
+
+@*Start GridView*@
+@(Html.DevExtreme().DataGrid<Topic>()
+        .ID("gridContainer")
+        .ShowBorders(true)
+        .ColumnMinWidth(50)
+        .RowTemplate(@<text>
+            <% var rowClass = "employee dx-row " + ((rowIndex % 2) ? "dx-row-alt" : ""); %>
+            <tbody class="<%- rowClass %>">
+                <tr class="main-row">
+                    <td><%- data.ID %></td>
+                     <td><%- data.Name %></td>
+                    <td><%- data.Keywords %></td>
+                    <td><%- data.TweetsCount %></td>
+                    <td><%- data.DT %></td>
+                    <td>
+                        <a href="./Topics/GrabTweet?id=<%- data.ID %>">Grab Tweets</a> |
+                        <a href="./Topics/Analysis?id=<%- data.ID %>">Analysis</a> |
+                        <a href="./Topics/Edit?id=<%- data.ID %>">Edit</a> |
+                        <a href="./Topics/Delete?id=<%- data.ID %>">Delete</a>
+                    </td>
+                </tr>
+
+            </tbody>
+        </text>)
+        .DataSource(d => d.Mvc().Controller("DataSource").LoadAction("GetAllTopics").Key("ID"))
+
+        .Columns(columns => {
+            columns.AddFor(m => m.ID).Width(50);
+            columns.AddFor(m => m.Name);
+            columns.AddFor(m => m.Keywords);
+            columns.AddFor(m => m.TweetsCount).Width(100);
+            columns.AddFor(m => m.DT);
+            columns.Add();
+        })
+        .Paging(p => p.PageSize(10))
+        .FilterRow(f => f.Visible(true))
+        .HeaderFilter(f => f.Visible(true))
+        .SearchPanel(searchPanel => searchPanel
+            .Visible(true)
+            .Width(300)
+            .Placeholder("Search...")
+        )
+        .GroupPanel(p => p.Visible(true))
+        .Grouping(g => g.AutoExpandAll(false))
+        .RemoteOperations(true)
+        .Summary(s => s
+            .TotalItems(totalItems => {
+                totalItems.AddFor(m => m.ID).SummaryType(SummaryType.Count);
+            })
+            .GroupItems(groupItems => {
+                groupItems.Add().SummaryType(SummaryType.Count);
+            })
+        )
+    )
+@*End GridView*@
+
+@*<table class="table">
+        <thead>
+            <tr>
+                <th>
+                    @Html.DisplayNameFor(model => model.Topic[0].Name)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Topic[0].Keywords)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Topic[0].TweetsCount)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Topic[0].DT)
+                </th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.Topic)
+            {
+                <tr>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Name)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Keywords)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.TweetsCount)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.DT)
+                    </td>
+                    <td>
+                        <a asp-page="./GrabTweet" asp-route-id="@item.ID">Grab Tweets</a> |
+                        <a asp-page="./Analysis" asp-route-id="@item.ID">Analysis</a> |
+                        <a asp-page="./Edit" asp-route-id="@item.ID">Edit</a> |
+                        <a asp-page="./Delete" asp-route-id="@item.ID">Delete</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>*@
